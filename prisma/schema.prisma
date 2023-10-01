@@ -32,7 +32,7 @@ model JournalEntry {
   content  String    @db.Text
   analysis Analysis?
 
-  @@unique([userId])
+  @@unique([userId, id])
 }
 
 model Analysis {
@@ -40,13 +40,11 @@ model Analysis {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  entryId String
+  entryId String       @unique
   entry   JournalEntry @relation(fields: [entryId], references: [id])
 
   mood     String
   summary  String  @db.Text
   color    String
   negative Boolean
-
-  @@unique([entryId])
 }
