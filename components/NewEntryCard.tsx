@@ -2,24 +2,31 @@
 
 import { createNewEntry } from '@/utils/api';
 import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
 function NewEntryCard() {
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
 
   const handleClick = async () => {
+    setLoading(true);
     const data = await createNewEntry();
+    setLoading(false);
     router.push(`/journal/${data.id}`);
   };
 
   return (
-    <div
-      className="cursor-pointer overflow-hidden rounded-lg bg-white shadow"
+    <button
+      className="cursor-pointer overflow-hidden rounded-lg border border-dashed border-zinc-800 bg-zinc-950 p-4 transition-colors hover:bg-zinc-900"
       onClick={handleClick}
+      disabled={loading}
     >
-      <div className="px-4 py-5 sm:p-6">
-        <span className="text-3xl">New Entry</span>
-      </div>
-    </div>
+      {loading ? (
+        'Creating...'
+      ) : (
+        <div className="my-4 text-9xl text-zinc-500">+</div>
+      )}
+    </button>
   );
 }
 

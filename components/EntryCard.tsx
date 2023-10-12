@@ -1,10 +1,17 @@
 const EntryCard = ({ entry }) => {
   const date = new Date(entry.createdAt).toDateString();
   return (
-    <div className="divide-y divide-gray-200 overflow-hidden rounded-lg bg-white shadow">
-      <div className="px-4 py-5">{date}</div>
-      <div className="px-4 py-5">{'summary'}</div>
-      <div className="px-4 py-4">{'mood'}</div>
+    <div
+      className={`white divide-y divide-gray-600 overflow-hidden rounded-t-lg border-b-2 bg-zinc-800 shadow`}
+      style={{
+        borderColor: entry.analysis.color,
+      }}
+    >
+      <div className="px-4 py-5 text-white">{date}</div>
+      <div className="px-4 py-5">{entry.analysis?.summary}</div>
+      <div className="px-4 py-4 font-semibold capitalize">
+        {entry.analysis?.mood}
+      </div>
     </div>
   );
 };

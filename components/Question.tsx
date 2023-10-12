@@ -22,25 +22,28 @@ function Question() {
   };
 
   return (
-    <>
-      <form className="flex w-full gap-4 py-6" onSubmit={handleSubmit}>
+    <div className="mb-8">
+      <form className="flex w-full gap-2 py-6" onSubmit={handleSubmit}>
         <input
           disabled={loading}
           onChange={handleChange}
           type="text"
           placeholder="Ask a question"
-          className="flex-1 rounded-lg border border-black/20 px-4 py-2 text-lg"
+          className="flex-1 rounded-lg border border-black/20 bg-zinc-800 px-4 py-2 text-lg text-white"
         />
         <button
           disabled={loading}
-          className="rounded-lg bg-blue-400 px-4 py-2 text-lg"
+          className="rounded-lg bg-blue-500 px-4 py-2 text-lg text-white disabled:bg-zinc-800"
         >
           Ask
         </button>
       </form>
-      {loading && <div>loading...</div>}
-      {response && <div>{response}</div>}
-    </>
+      {(response || loading) && (
+        <div className="mb-8 rounded-lg border border-gray-800 px-6 py-4 text-sm">
+          {loading ? 'Thinking...' : response}
+        </div>
+      )}
+    </div>
   );
 }
 

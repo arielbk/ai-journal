@@ -14,6 +14,9 @@ const getEntries = async () => {
     orderBy: {
       createdAt: 'desc',
     },
+    include: {
+      analysis: true,
+    },
   });
   return entries;
 };
@@ -22,10 +25,9 @@ const JournalPage = async () => {
   const entries = await getEntries();
 
   return (
-    <div className="h-full bg-zinc-100 p-10">
-      <h2 className="mb-4 text-3xl">Journal</h2>
+    <div className="min-h-full px-10 py-4">
       <Question />
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-3 gap-x-4 gap-y-6">
         <NewEntryCard />
         {entries.map((entry) => (
           <Link href={`/journal/${entry.id}`} key={entry.id}>

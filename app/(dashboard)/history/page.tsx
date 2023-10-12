@@ -15,7 +15,8 @@ const getData = async () => {
 
   const analyses = posts
     .filter((post) => !!post.analysis)
-    .map((post) => post.analysis!);
+    .map((post) => post.analysis!)
+    .sort((a, b) => (a.createdAt > b.createdAt ? 1 : -1));
   const scores = analyses.map((analysis) => analysis.sentimentScore);
 
   const sum = scores.reduce((all, current) => all + current, 0);
@@ -26,9 +27,12 @@ const getData = async () => {
 const HistoryPage = async () => {
   const { avg, analyses } = await getData();
   return (
-    <div>
-      <div>Average sentiment: {avg}</div>
-      <div className="h-[500px]">
+    <div className="px-10 py-4">
+      <div className="py-4 text-xl">
+        <span className="mr-4 font-semibold">Average sentiment:</span>
+        <span className="text-4xl text-white">{avg}</span>
+      </div>
+      <div className="mx-auto h-[500px] px-4">
         <HistoryChart data={analyses} />
       </div>
     </div>

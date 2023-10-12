@@ -1,8 +1,14 @@
 'use client';
 
+import { Analysis } from '@prisma/client';
 import { ResponsiveContainer, Line, XAxis, Tooltip, LineChart } from 'recharts';
+import { Props } from 'recharts/types/component/DefaultLegendContent';
 
-const CustomTooltip = ({ payload, label, active }) => {
+const CustomTooltip = ({
+  payload,
+  label,
+  active,
+}: Props & { label: string; active: boolean }) => {
   const dateLabel = new Date(label).toLocaleString('en-us', {
     weekday: 'long',
     year: 'numeric',
@@ -13,15 +19,15 @@ const CustomTooltip = ({ payload, label, active }) => {
   });
 
   if (active) {
-    const analysis = payload[0].payload;
+    const analysis = payload![0].payload as unknown as Analysis;
     return (
-      <div className="custom-tooltip relative rounded-lg border border-black/10 bg-white/5 p-8 shadow-md backdrop-blur-md">
+      <div className="custom-tooltip relative rounded-lg border border-black/10 bg-white/5 p-4 shadow-md backdrop-blur-md">
         <div
-          className="absolute left-2 top-2 h-2 w-2 rounded-full"
+          className="absolute bottom-2 right-2 h-3 w-3 rounded-full"
           style={{ background: analysis.color }}
-        ></div>
-        <p className="label text-sm text-black/30">{dateLabel}</p>
-        <p className="intro text-xl uppercase">{analysis.mood}</p>
+        />
+        <p className="label text-sm text-white/30">{dateLabel}</p>
+        <p className=" text-xl font-semibold capitalize">{analysis.mood}</p>
       </div>
     );
   }
