@@ -34,7 +34,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
             <UserButton />
           </div>
         </header>
-        <main className="min-h-[calc(100vh-60px)] rounded-ss-xl bg-black">
+        <main className="flex min-h-[calc(100vh-60px)] rounded-ss-xl bg-black">
           {children}
         </main>
       </div>

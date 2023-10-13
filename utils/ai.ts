@@ -1,4 +1,4 @@
-import { JournalEntry } from '@prisma/client';
+import { Analysis, JournalEntry } from '@prisma/client';
 import { ChatOpenAI } from 'langchain/chat_models/openai';
 import { Document } from 'langchain/document';
 import { OpenAIEmbeddings } from 'langchain/embeddings/openai';
@@ -68,52 +68,86 @@ export const analyze = async (content: string) => {
   }
 };
 
-export const qa = async (question: string, entries: JournalEntry[]) => {
+export const qa = async (
+  question: string,
+  entries: (JournalEntry & { analysis: Analysis | null })[],
+) => {
   // initialise the llm
-  const model = new ChatOpenAI({});
-  const docs = entries.sort((a, b) => {
-    if (a.createdAt > b.createdAt) {
-      return 1;
-    } else if (a.createdAt < b.createdAt) {
-      return -1;
-    }
-    return 0;
-  }).map((entry) => {
-    return new Document({
-      pageContent: entry.content,
-      metadata: { id: entry.id, createdAt: entry.createdAt },
+  const model = new ChatOpenAI({ modelName: 'gpt-3.5-turbo' });
+  const docs = entries
+    .sort((a, b) => {
+      if (a.createdAt > b.createdAt) {
+        return 1;
+      } else if (a.createdAt < b.createdAt) {
+        return -1;
+      }
+      return 0;
+    })
+    .map((entry) => {
+      return new Document({
+        pageContent: entry.content,
+        metadata: {
+          id: entry.id,
+          createdAt: entry.createdAt,
+          subject: entry.analysis?.subject,
+        },
+      });
     });
-  });
   const serializeDocs = (docs: Array<Document>) =>
-    docs.map((doc) => doc.pageContent).join('\n\n');
+    docs
+      .map((doc) => `Date: ${doc.metadata.createdAt}\n\n${doc.pageContent}`)
+      .join('\n\n------\n\n');
 
   // create a vector store from the docs
-  const vectorStore = await MemoryVectorStore.fromDocuments(docs, new OpenAIEmbeddings());
+  const vectorStore = await MemoryVectorStore.fromDocuments(
+    docs,
+    new OpenAIEmbeddings(),
+  );
   const vectorStoreRetriever = vectorStore.asRetriever();
 
   // create a system and human prompt
-  const SYSTEM_TEMPLATE = `Use the following pieces of context to answer the question at the end.
-If you don't know the answer, just say that you don't know, don't try to make up an answer.
-----------------
+  const SYSTEM_TEMPLATE = `Use the following of my journal entries to answer the question at the end.
+If you don't know the answer or do not have an asnwer, just say that you don't know, don't try to make up an answer.
+You will only get the relevant entries so do no refer to 'first' or 'second' entries.
+If possible, mention the specific date of the entry you refer to.
+------
 {context}`;
   const messages = [
     SystemMessagePromptTemplate.fromTemplate(SYSTEM_TEMPLATE),
     HumanMessagePromptTemplate.fromTemplate('{question}'),
   ];
   const prompt = ChatPromptTemplate.fromMessages(messages);
-  const serializedContext = vectorStoreRetriever.pipe(serializeDocs)
 
   // sequential chain
   const chain = RunnableSequence.from([
     {
-      context: serializedContext,
-      question: new RunnablePassthrough(),
+      // Extract the "question" field from the input object and pass it to the retriever as a string
+      sourceDocuments: RunnableSequence.from([
+        (input) => input.question,
+        vectorStoreRetriever,
+      ]),
+      question: (input) => input.question || 'I do not have a question',
     },
-    prompt,
-    model,
-    new StringOutputParser(),
+    {
+      // Pass the source documents through unchanged so that we can return them directly in the final result
+      sourceDocuments: (previousStepResult) =>
+        previousStepResult.sourceDocuments,
+      question: (previousStepResult) => previousStepResult.question,
+      context: (previousStepResult) =>
+        serializeDocs(previousStepResult.sourceDocuments),
+    },
+    {
+      result: prompt.pipe(model).pipe(new StringOutputParser()),
+      sourceDocuments: (previousStepResult) =>
+        previousStepResult.sourceDocuments,
+    },
   ]);
 
-  const answer = await chain.invoke(question);
-  return answer;
+  const answer = await chain.invoke({ question });
+  const relevantEntries = answer.sourceDocuments.map((doc: Document) => ({
+    id: doc.metadata.id,
+    createdAt: doc.metadata.createdAt,
+    subject: doc.metadata.subject,
+  }));
+  return { answer: answer.result, relevantEntries };
 };

@@ -37,7 +37,7 @@ const Editor = ({ entry }) => {
   ];
 
   return (
-    <div className="relative h-full w-full overflow-hidden rounded-ss-lg">
+    <div className="relative h-full w-full overflow-hidden rounded-ss-lg bg-zinc-950">
       {/* analysis */}
       <div className="w-full border-l border-white/10 bg-zinc-800">
         <ul className="flex">
@@ -46,7 +46,9 @@ const Editor = ({ entry }) => {
               key={item.name}
               className="flex items-center justify-between gap-2 border-b border-t border-black/10 px-6 py-4"
             >
-              <span className="text-m font-semibold">{item.name}</span>
+              <span className="text-m font-semibold text-slate-400">
+                {item.name}
+              </span>
               <span className="text-right text-white">{item.value}</span>
             </li>
           ))}
@@ -59,13 +61,11 @@ const Editor = ({ entry }) => {
         <div className={`h-1`} style={{ backgroundColor: color }} />
       </div>
 
-      <div className="relative">
-        <textarea
-          className="h-full w-full resize-none bg-black p-8 text-xl outline-none"
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-        />
-      </div>
+      <textarea
+        className="h-full w-full max-w-4xl resize-none bg-zinc-950 p-8 text-xl text-gray-200 outline-none"
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+      />
     </div>
   );
 };
