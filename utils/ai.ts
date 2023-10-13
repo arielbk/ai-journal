@@ -1,9 +1,20 @@
-import { loadQARefineChain } from 'langchain/chains';
+import { JournalEntry } from '@prisma/client';
+import { ChatOpenAI } from 'langchain/chat_models/openai';
 import { Document } from 'langchain/document';
 import { OpenAIEmbeddings } from 'langchain/embeddings/openai';
 import { OpenAI } from 'langchain/llms/openai';
 import { StructuredOutputParser } from 'langchain/output_parsers';
-import { PromptTemplate } from 'langchain/prompts';
+import {
+  ChatPromptTemplate,
+  HumanMessagePromptTemplate,
+  PromptTemplate,
+  SystemMessagePromptTemplate,
+} from 'langchain/prompts';
+import { StringOutputParser } from 'langchain/schema/output_parser';
+import {
+  RunnablePassthrough,
+  RunnableSequence,
+} from 'langchain/schema/runnable';
 import { MemoryVectorStore } from 'langchain/vectorstores/memory';
 import z from 'zod';
 
@@ -57,25 +68,52 @@ export const analyze = async (content: string) => {
   }
 };
 
-// here we create the vector in memory every time a question is asked
-// todo: every time a journal is added or modified, store it in a vector db also
-export const qa = async (question, entries) => {
-  const docs = entries.map((entry) => {
+export const qa = async (question: string, entries: JournalEntry[]) => {
+  // initialise the llm
+  const model = new ChatOpenAI({});
+  const docs = entries.sort((a, b) => {
+    if (a.createdAt > b.createdAt) {
+      return 1;
+    } else if (a.createdAt < b.createdAt) {
+      return -1;
+    }
+    return 0;
+  }).map((entry) => {
     return new Document({
       pageContent: entry.content,
       metadata: { id: entry.id, createdAt: entry.createdAt },
     });
   });
-  const model = new OpenAI({ temperature: 0, modelName: 'gpt-3.5-turbo' });
-  const chain = new loadQARefineChain(model);
-  const embeddings = new OpenAIEmbeddings();
-  const store = await MemoryVectorStore.fromDocuments(docs, embeddings);
-  const relevantDocs = await store.similaritySearch(question);
+  const serializeDocs = (docs: Array<Document>) =>
+    docs.map((doc) => doc.pageContent).join('\n\n');
 
-  const res = await chain.call({
-    input_documents: relevantDocs,
-    question,
-  });
+  // create a vector store from the docs
+  const vectorStore = await MemoryVectorStore.fromDocuments(docs, new OpenAIEmbeddings());
+  const vectorStoreRetriever = vectorStore.asRetriever();
 
-  return res.output_text;
+  // create a system and human prompt
+  const SYSTEM_TEMPLATE = `Use the following pieces of context to answer the question at the end.
+If you don't know the answer, just say that you don't know, don't try to make up an answer.
+----------------
+{context}`;
+  const messages = [
+    SystemMessagePromptTemplate.fromTemplate(SYSTEM_TEMPLATE),
+    HumanMessagePromptTemplate.fromTemplate('{question}'),
+  ];
+  const prompt = ChatPromptTemplate.fromMessages(messages);
+  const serializedContext = vectorStoreRetriever.pipe(serializeDocs)
+
+  // sequential chain
+  const chain = RunnableSequence.from([
+    {
+      context: serializedContext,
+      question: new RunnablePassthrough(),
+    },
+    prompt,
+    model,
+    new StringOutputParser(),
+  ]);
+
+  const answer = await chain.invoke(question);
+  return answer;
 };
