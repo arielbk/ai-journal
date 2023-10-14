@@ -7,7 +7,7 @@ import { JournalEntry } from '@prisma/client';
 import Link from 'next/link';
 
 const getEntries = async () => {
-  const user = await getUserByClerkID({});
+  const user = await getUserByClerkID();
   const entries = await prisma.journalEntry.findMany({
     where: {
       userId: user.id,
@@ -26,11 +26,11 @@ const JournalPage = async () => {
   const entries = await getEntries();
 
   return (
-    <div className="min-h-full px-10 py-4 max-w-7xl">
+    <div className="min-h-full max-w-7xl px-10 py-4">
       <Question />
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-6">
+      <div className="grid gap-x-4 gap-y-6 md:grid-cols-2 lg:grid-cols-3">
         <NewEntryCard />
-        {entries.map((entry: JournalEntry) => (
+        {entries.map((entry) => (
           <Link href={`/journal/${entry.id}`} key={entry.id}>
             <EntryCard entry={entry} />
           </Link>

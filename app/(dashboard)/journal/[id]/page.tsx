@@ -4,7 +4,7 @@ import { prisma } from '@/utils/db';
 
 const getEntry = async (id: string) => {
   const user = await getUserByClerkID();
-  const entry = await prisma.journalEntry.findUnique({
+  const entry = await prisma.journalEntry.findUniqueOrThrow({
     where: {
       userId: user.id,
       id,
@@ -16,8 +16,13 @@ const getEntry = async (id: string) => {
   return entry;
 };
 
-const EntryPage = async ({ params }) => {
-  const entry = await getEntry(params.id);
+const EntryPage = async ({ params }: { params: { id: string } }) => {
+  let entry;
+  try {
+    entry = await getEntry(params.id);
+  } catch (err) {
+    throw new Error('A problem occurred fetching that entry!');
+  }
 
   return (
     <div className="min-h-full w-full">

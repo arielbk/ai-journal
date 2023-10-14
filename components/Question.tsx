@@ -3,6 +3,8 @@
 import { askQuestion } from '@/utils/api';
 import Link from 'next/link';
 import React, { ChangeEventHandler, FormEventHandler, useState } from 'react';
+import Markdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 function Question() {
   const [value, setValue] = useState('');
@@ -51,20 +53,25 @@ function Question() {
       {(response || loading) && (
         <div className="mb-8 rounded-lg border border-gray-800 bg-zinc-900 px-6 py-4 text-sm">
           {loading ? (
-            'Scanning...'
+            'Analyzing...'
           ) : (
             <div>
-              <p>{response?.answer}</p>
-              <h4 className="mb-3 mt-4 text-lg font-semibold text-white">
+              <Markdown
+                className="prose dark:prose-invert text-sm text-zinc-400"
+                remarkPlugins={[remarkGfm]}
+              >
+                {response?.answer}
+              </Markdown>
+              <h4 className="mb-2 mt-4 text-lg font-semibold text-white">
                 Sources
               </h4>
-              <ul className="flex flex-col">
+              <ol className="flex flex-col">
                 {response?.relevantEntries.map((doc) => (
                   <li key={doc.id} className="mb-2 inline-block">
                     <Link
-                      href={`/${doc.id}`}
+                      href={`/journal/${doc.id}`}
                       key={doc.id}
-                      className="underline hover:text-blue-400"
+                      className="underline decoration-blue-500 underline-offset-2 hover:text-blue-400"
                     >
                       {doc.subject}
                     </Link>
@@ -73,7 +80,7 @@ function Question() {
                     </span>
                   </li>
                 ))}
-              </ul>
+              </ol>
             </div>
           )}
         </div>

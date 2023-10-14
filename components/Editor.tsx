@@ -1,8 +1,9 @@
 'use client';
 
 import { updateEntry } from '@/utils/api';
+import { Prisma } from '@prisma/client';
 import { useState } from 'react';
-import { Autosave, useAutosave } from 'react-autosave';
+import { useAutosave } from 'react-autosave';
 
 const Loader = () => {
   return (
@@ -12,7 +13,11 @@ const Loader = () => {
   );
 };
 
-const Editor = ({ entry }) => {
+const Editor = ({
+  entry,
+}: {
+  entry: Prisma.JournalEntryGetPayload<{ include: { analysis: true } }>;
+}) => {
   const [value, setValue] = useState(entry.content);
   const [isLoading, setIsLoading] = useState(false);
   const [analysis, setAnalysis] = useState(entry.analysis);
@@ -28,12 +33,10 @@ const Editor = ({ entry }) => {
     interval: 2000,
   });
 
-  const { mood, subject, summary, negative, color } = analysis;
   const analysisData = [
-    { name: 'Subject', value: subject },
-    { name: 'Mood', value: mood },
-    // { name: 'Summary', value: summary },
-    { name: 'Negative', value: negative ? 'True' : 'False' },
+    { name: 'Subject', value: analysis?.subject },
+    { name: 'Mood', value: analysis?.mood },
+    { name: 'Negative', value: analysis?.negative ? 'True' : 'False' },
   ];
 
   return (
@@ -46,7 +49,7 @@ const Editor = ({ entry }) => {
               key={item.name}
               className="flex items-center justify-between gap-2 border-b border-t border-black/10 px-6 py-4"
             >
-              <span className="text-m font-semibold text-slate-400">
+              <span className="text-m font-semibold text-zinc-400">
                 {item.name}
               </span>
               <span className="text-right text-white">{item.value}</span>
@@ -58,7 +61,7 @@ const Editor = ({ entry }) => {
             <Loader />
           </div>
         )}
-        <div className={`h-1`} style={{ backgroundColor: color }} />
+        <div className={`h-1`} style={{ backgroundColor: analysis?.color }} />
       </div>
 
       <textarea

@@ -17,7 +17,7 @@ function NewEntryCard() {
 
   return (
     <button
-      className="colspan-full cursor-pointer overflow-hidden rounded-lg border border-dashed border-zinc-800 bg-zinc-950 p-4 transition-colors hover:bg-zinc-900"
+      className="colspan-full cursor-pointer overflow-hidden rounded-lg border border-zinc-800 bg-zinc-950 p-4 transition-colors hover:bg-zinc-900"
       onClick={handleClick}
       disabled={loading}
     >

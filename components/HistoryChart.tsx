@@ -1,14 +1,9 @@
 'use client';
 
 import { Analysis } from '@prisma/client';
-import { ResponsiveContainer, Line, XAxis, Tooltip, LineChart } from 'recharts';
-import { Props } from 'recharts/types/component/DefaultLegendContent';
+import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis } from 'recharts';
 
-const CustomTooltip = ({
-  payload,
-  label,
-  active,
-}: Props & { label: string; active: boolean }) => {
+const CustomTooltip = ({ payload, label, active }: any) => {
   const dateLabel = new Date(label).toLocaleString('en-us', {
     weekday: 'long',
     year: 'numeric',
@@ -35,7 +30,7 @@ const CustomTooltip = ({
   return null;
 };
 
-const HistoryChart = ({ data }) => {
+const HistoryChart = ({ data }: { data: Analysis[] }) => {
   return (
     <ResponsiveContainer width={'100%'} height="100%">
       <LineChart width={300} height={100} data={data}>

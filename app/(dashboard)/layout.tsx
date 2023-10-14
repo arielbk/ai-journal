@@ -8,8 +8,8 @@ const links = [
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   return (
-    <div className="relative h-screen w-screen bg-zinc-900 text-gray-400">
-      <aside className="absolute left-0 top-0 w-[200px] border-r border-black/10">
+    <div className="relative min-h-screen w-screen bg-zinc-900 text-gray-400">
+      <aside className="absolute left-0 top-0 h-full w-[200px] border-r border-black/10">
         <Link href="/">
           <div className="mx-6 my-6 text-2xl text-white">🏄 Ocean</div>
         </Link>
