@@ -8,7 +8,7 @@ import { useAutosave } from 'react-autosave';
 const Loader = () => {
   return (
     <div role="status">
-      <div className="border-3 h-8 w-8 rounded-full border-t-blue-500" />
+      <div className="h-8 w-8 animate-spin rounded-full border-4 border-transparent border-t-blue-500" />
     </div>
   );
 };
@@ -40,9 +40,9 @@ const Editor = ({
   ];
 
   return (
-    <div className="relative h-full w-full overflow-hidden rounded-ss-lg bg-zinc-950">
+    <div className="relative flex h-full w-full flex-col overflow-hidden rounded-ss-lg bg-zinc-950">
       {/* analysis */}
-      <div className="w-full border-l border-white/10 bg-zinc-800">
+      <div className="relative flex w-full flex-col border-white/60 bg-zinc-800">
         <ul className="flex">
           {analysisData.map((item) => (
             <li
@@ -56,7 +56,7 @@ const Editor = ({
             </li>
           ))}
         </ul>
-        {!isLoading && (
+        {isLoading && (
           <div className="absolute right-2 top-3">
             <Loader />
           </div>
@@ -65,7 +65,7 @@ const Editor = ({
       </div>
 
       <textarea
-        className="h-full w-full max-w-4xl resize-none bg-zinc-950 p-8 text-xl text-gray-200 outline-none"
+        className="w-full max-w-4xl flex-1 resize-none bg-zinc-950 p-8 text-xl text-gray-200 outline-none"
         value={value}
         onChange={(e) => setValue(e.target.value)}
       />
